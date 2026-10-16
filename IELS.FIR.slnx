@@ -9,5 +9,6 @@
     <Project Path="tests/IELS.FIR.Api.Tests/IELS.FIR.Api.Tests.csproj" />
     <Project Path="tests/IELS.FIR.Application.Tests/IELS.FIR.Application.Tests.csproj" />
     <Project Path="tests/IELS.FIR.Domain.Tests/IELS.FIR.Domain.Tests.csproj" />
+    <Project Path="tests/IELS.FIR.IntegrationTests/IELS.FIR.IntegrationTests.csproj" />
   </Folder>
 </Solution>

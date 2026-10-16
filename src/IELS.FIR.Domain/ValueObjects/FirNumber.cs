@@ -33,10 +33,7 @@ public sealed record FirNumber
 
         var normalized = value.Trim().ToUpperInvariant();
 
-        if (!Format.IsMatch(normalized))
-            throw new DomainException("Invalid FIR number format.");
-
-        return new FirNumber(normalized);
+        return !Format.IsMatch(normalized) ? throw new DomainException("Invalid FIR number format.") : new FirNumber(normalized);
     }
 
     public override string ToString() => Value;

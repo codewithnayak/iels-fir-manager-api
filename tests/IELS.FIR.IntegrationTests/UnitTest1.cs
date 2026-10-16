@@ -1,4 +1,4 @@
-﻿namespace IELS.FIR.Application.Tests;
+﻿namespace IELS.FIR.IntegrationTests;
 
 public class UnitTest1
 {
