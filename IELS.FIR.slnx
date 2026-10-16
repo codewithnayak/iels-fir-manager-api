@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/IELS.FIR.Api/IELS.FIR.Api.csproj" />
+    <Project Path="src/IELS.FIR.Application/IELS.FIR.Application.csproj" />
+    <Project Path="src/IELS.FIR.Domain/IELS.FIR.Domain.csproj" />
+    <Project Path="src/IELS.FIR.Infrastructure/IELS.FIR.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/IELS.FIR.Api.Tests/IELS.FIR.Api.Tests.csproj" />
+    <Project Path="tests/IELS.FIR.Application.Tests/IELS.FIR.Application.Tests.csproj" />
+    <Project Path="tests/IELS.FIR.Domain.Tests/IELS.FIR.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
