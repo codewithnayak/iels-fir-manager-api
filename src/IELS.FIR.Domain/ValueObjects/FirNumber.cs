@@ -7,11 +7,9 @@ namespace IELS.FIR.Domain.ValueObjects;
 /// <summary>
 /// 
 /// </summary>
-public sealed record FirNumber
+public sealed partial record FirNumber
 {
-    private static readonly Regex Format = new(
-        @"^[A-Z0-9-]{3,30}$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex Format = MyRegex();
 
     public string Value { get; }
 
@@ -37,4 +35,6 @@ public sealed record FirNumber
     }
 
     public override string ToString() => Value;
+    [GeneratedRegex(@"^[A-Z0-9-]{3,30}$", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    private static partial Regex MyRegex();
 }
