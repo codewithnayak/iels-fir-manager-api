@@ -12,13 +12,26 @@ public sealed class RegisterFirHandlerTests
     private static readonly DateTimeOffset FixedTime =
         new(2026, 10, 16, 10, 0, 0, TimeSpan.Zero);
 
+    
     private static RegisterFirCommand ValidCommand() => new(
         "FIR-2026-001",
         "PS-001",
         "DIST-001",
         FixedTime.AddDays(-1),
         "A sample incident description containing enough details.",
-        "Test Complainant");
+        "Test Complainant",
+        new IncidentLocationDto(
+            AddressLine1: "Main Road, Near Central Market",
+            AddressLine2: "Opposite Bus Stand",
+            VillageOrCity: "Bhubaneswar",
+            District: "Khordha",
+            State: "Odisha",
+            PinCode: "751001",
+            Latitude: 20.2961m,
+            Longitude: 85.8245m
+        )
+    );
+
 
     [Fact]
     public async Task HandleAsync_ValidCommand_SavesFirAndReturnsId()
@@ -43,6 +56,7 @@ public sealed class RegisterFirHandlerTests
         Assert.NotNull(savedFir);
         Assert.Equal(id, savedFir.Id);
         Assert.Equal("FIR-2026-001", savedFir.FirNumber.Value);
+        Assert.Equal(FixedTime, savedFir.RegisteredAtUtc);
 
         repository.Verify(x => x.AddAsync(
             It.IsAny<Fir>(),
