@@ -8,13 +8,26 @@ public sealed class RegisterFirValidatorTests
 {
     private readonly RegisterFirValidator _validator = new();
 
+ 
     private static RegisterFirCommand ValidCommand() => new(
         "FIR-2026-001",
         "PS-001",
         "DIST-001",
         DateTimeOffset.UtcNow.AddDays(-1),
         "A sample incident description containing enough details.",
-        "Test Complainant");
+        "Test Complainant",
+        new IncidentLocationDto(
+            AddressLine1: "Main Road, Near Central Market",
+            AddressLine2: "Opposite Bus Stand",
+            VillageOrCity: "Bhubaneswar",
+            District: "Khordha",
+            State: "Odisha",
+            PinCode: "751001",
+            Latitude: 20.2961m,
+            Longitude: 85.8245m
+        )
+    );
+
 
     [Fact]
     public void ValidCommand_ShouldNotHaveErrors()

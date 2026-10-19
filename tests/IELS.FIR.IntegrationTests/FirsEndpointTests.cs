@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using IELS.FIR.Application.Features.RegisterFir;
 using IELS.FIR.IntegrationTests.Fixtures;
 
 namespace IELS.FIR.IntegrationTests;
@@ -84,7 +85,16 @@ public sealed class FirsEndpointTests
             "DIST-001",
             DateTimeOffset.UtcNow.AddDays(-1),
             "A reported incident containing sufficient information.",
-            "Test Complainant");
+            "Test Complainant",
+            new IncidentLocationDto(
+                "Main Road, Near Central Market",
+                "Opposite Bus Stand",
+                "Bhubaneswar",
+                "Khordha",
+                "Odisha",
+                "751001",
+                20.2961m,
+                85.8245m));
     }
 
     private sealed record RegisterFirRequest(
@@ -93,7 +103,8 @@ public sealed class FirsEndpointTests
         string DistrictId,
         DateTimeOffset IncidentDate,
         string Description,
-        string ComplainantName);
+        string ComplainantName,
+        IncidentLocationDto IncidentLocation);
 
     public sealed record RegisterFirResponse(Guid Id);
 }

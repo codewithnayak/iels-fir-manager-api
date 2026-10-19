@@ -1,5 +1,6 @@
 
 using FluentValidation;
+using IELS.FIR.Application.Features.GetFirByNumber;
 using IELS.FIR.Application.Features.RegisterFir;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,7 +18,7 @@ public static class DependencyInjection
             RegisterFirValidator>();
 
         services.AddScoped<RegisterFirHandler>();
-
+        services.AddScoped<GetFirByNumberHandler>();
         return services;
     }
 }

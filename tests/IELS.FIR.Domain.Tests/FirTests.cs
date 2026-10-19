@@ -48,7 +48,9 @@ public class FirTests
                 RegistrationTime.AddDays(-1),
                 description,
                 "Test Complainant",
-                RegistrationTime));
+                RegistrationTime,
+                IncidentLocation.Create("asdsa",
+                    "asdasd" , "Yes","dsd","sdasd","7655241")));
     }
 
     [Theory]
@@ -83,6 +85,8 @@ public class FirTests
             incidentDate ?? RegistrationTime.AddDays(-1),
             "A sample incident description containing enough details.",
             "Test Complainant",
-            RegistrationTime);
+            RegistrationTime,
+            IncidentLocation.Create("asdsa",
+                "asdasd" , "Yes","dsd","sdasd","7655241"));
     }
 }

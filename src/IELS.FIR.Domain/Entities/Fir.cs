@@ -17,6 +17,8 @@ public sealed class Fir
     public FirStatus Status { get; private set; }
     public DateTimeOffset RegisteredAtUtc { get; private set; }
 
+    public IncidentLocation IncidentLocation { get; private set; } = null!;
+
     private Fir() { }
 
     public static Fir Register(
@@ -26,7 +28,8 @@ public sealed class Fir
         DateTimeOffset incidentDate,
         string description,
         string complainantName,
-        DateTimeOffset registeredAtUtc)
+        DateTimeOffset registeredAtUtc,
+        IncidentLocation incidentLocation)
     {
         if (string.IsNullOrWhiteSpace(policeStationId))
             throw new DomainException("Police station is required.");
@@ -44,6 +47,10 @@ public sealed class Fir
 
         if (incidentDate > registeredAtUtc)
             throw new DomainException("Incident date cannot be in the future.");
+        
+        if(incidentLocation == null)
+            throw new DomainException("Incident location is required.");
+
 
         return new Fir
         {
@@ -55,7 +62,8 @@ public sealed class Fir
             Description = description.Trim(),
             ComplainantName = complainantName.Trim(),
             Status = FirStatus.Registered,
-            RegisteredAtUtc = registeredAtUtc.ToUniversalTime()
+            RegisteredAtUtc = registeredAtUtc.ToUniversalTime(),
+            IncidentLocation = incidentLocation,
         };
     }
 }
