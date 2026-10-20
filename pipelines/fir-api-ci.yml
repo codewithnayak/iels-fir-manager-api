@@ -6,6 +6,11 @@ trigger:
 pool:
   name: IELS-SelfHosted
 
+variables:
+  acrName: acrielsfirdev
+  acrLoginServer: acrielsfirdev.azurecr.io
+  imageRepository: iels-fir-api
+
 stages:
   - stage: CI
     displayName: Build and Test
@@ -22,30 +27,38 @@ stages:
 
           - script: |
               set -euo pipefail
+
               dotnet restore IELS.FIR.slnx
-              dotnet build IELS.FIR.slnx -c Release --no-restore
+              dotnet build IELS.FIR.slnx \
+                -c Release \
+                --no-restore
             displayName: Restore and Build
 
           - script: |
+              set -euo pipefail
+
               dotnet test tests/IELS.FIR.Domain.Tests \
                 -c Release --no-build
+
               dotnet test tests/IELS.FIR.Application.Tests \
                 -c Release --no-build
+
               dotnet test tests/IELS.FIR.Api.Tests \
                 -c Release --no-build
             displayName: Unit Tests
 
   - stage: Container
-    displayName: Build and Push Image
+    displayName: Build and Push Docker Image
     dependsOn: CI
     condition: succeeded()
     jobs:
-      - job: ACRBuild
+      - job: DockerBuild
+        displayName: Docker Build and Push
         steps:
           - checkout: self
 
           - task: AzureCLI@2
-            displayName: Build Image in ACR
+            displayName: Build and Push Image to ACR
             inputs:
               azureSubscription: sc-iels-azure-dev
               scriptType: bash
@@ -53,9 +66,25 @@ stages:
               inlineScript: |
                 set -euo pipefail
 
-                az acr build \
-                  --registry acrielsfirdev \
-                  --image iels-fir-api:$(Build.BuildId) \
-                  --image iels-fir-api:dev \
+                IMAGE="$(acrLoginServer)/$(imageRepository)"
+                BUILD_TAG="$(Build.BuildId)"
+
+                echo "Logging into Azure Container Registry..."
+                az acr login --name "$(acrName)"
+
+                echo "Building Docker image..."
+                docker build \
                   --file Dockerfile \
+                  --tag "$IMAGE:$BUILD_TAG" \
+                  --tag "$IMAGE:dev" \
                   .
+
+                echo "Pushing build-specific image..."
+                docker push "$IMAGE:$BUILD_TAG"
+
+                echo "Pushing development image..."
+                docker push "$IMAGE:dev"
+
+                echo "Successfully pushed:"
+                echo "$IMAGE:$BUILD_TAG"
+                echo "$IMAGE:dev"
