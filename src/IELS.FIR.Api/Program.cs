@@ -19,12 +19,19 @@ builder.Services.AddDbContext<FirDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("FirDatabase")));
 
-builder.Services.AddOpenTelemetry()
-    .UseAzureMonitor(options =>
-    {
-        options.ConnectionString =
-            builder.Configuration["ApplicationInsights:ConnectionString"];
-    });
+
+var appInsightsConnectionString =
+    builder.Configuration["ApplicationInsights:ConnectionString"];
+
+
+if (!string.IsNullOrEmpty(appInsightsConnectionString))
+{
+    builder.Services.AddOpenTelemetry()
+        .UseAzureMonitor(options =>
+        {
+            options.ConnectionString =  appInsightsConnectionString;
+        });
+}
 
 var app = builder.Build();
 app.UseExceptionHandler();
