@@ -88,3 +88,35 @@ stages:
                 echo "Successfully pushed:"
                 echo "$IMAGE:$BUILD_TAG"
                 echo "$IMAGE:dev"
+  - stage: CD_Dev
+    displayName: Deploy FIR API to Dev
+    dependsOn: Container
+    condition: succeeded()
+
+    jobs:
+      - deployment: DeployFirApi
+        displayName: Deploy FIR API
+        environment: IELS-Dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: none
+
+                - task: AzureCLI@2
+                  displayName: Deploy to Azure Container Apps
+                  inputs:
+                    azureSubscription: sc-iels-azure-dev
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+
+                      IMAGE="acrielsfirdev.azurecr.io/iels-fir-api:$(Build.BuildId)"
+
+                      az containerapp update \
+                        --name ca-iels-fir-dev \
+                        --resource-group rg-iels-dev \
+                        --image "$IMAGE"
+
+                      echo "Deployed $IMAGE"
