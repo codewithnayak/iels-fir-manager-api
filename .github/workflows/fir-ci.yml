@@ -1,11 +1,13 @@
-name: IELS FIR CI
+name: FIR API Quality Checks
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
-  workflow_dispatch:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
 
 permissions:
   contents: read

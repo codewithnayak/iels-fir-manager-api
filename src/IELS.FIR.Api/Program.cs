@@ -1,4 +1,5 @@
 
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using IELS.FIR.Api.ExceptionHandling;
 using IELS.FIR.Application;
 using IELS.FIR.Application.Features.GetFirByNumber;
@@ -18,6 +19,19 @@ builder.Services.AddDbContext<FirDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("FirDatabase")));
 
+
+var appInsightsConnectionString =
+    builder.Configuration["ApplicationInsights:ConnectionString"];
+
+
+if (!string.IsNullOrEmpty(appInsightsConnectionString))
+{
+    builder.Services.AddOpenTelemetry()
+        .UseAzureMonitor(options =>
+        {
+            options.ConnectionString =  appInsightsConnectionString;
+        });
+}
 
 var app = builder.Build();
 app.UseExceptionHandler();
