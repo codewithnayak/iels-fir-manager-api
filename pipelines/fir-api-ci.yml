@@ -118,7 +118,7 @@ stages:
     jobs:
       - deployment: ApplyFirMigrations
         displayName: Apply FIR Database Migrations
-        environment: IELS-Dev-Database
+        environment: IELS-Dev
 
         strategy:
           runOnce:
@@ -145,7 +145,7 @@ stages:
                       test -f "$SQL_FILE"
 
                       # SQL execution will be added after
-                      # configuring database authentication.             
+                      # configuring database authentication.
   - stage: CD_Dev
     displayName: Deploy FIR API to Dev
     dependsOn: DeployDatabase_Dev
