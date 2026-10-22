@@ -47,7 +47,28 @@ stages:
               dotnet test tests/IELS.FIR.Api.Tests \
                 -c Release --no-build
             displayName: Unit Tests
+          - script: |
+              set -euo pipefail
 
+              dotnet tool install --global dotnet-ef --version "10.0.*"
+              export PATH="$PATH:$HOME/.dotnet/tools"
+
+              mkdir -p "$(Build.ArtifactStagingDirectory)/migrations"
+
+              dotnet ef migrations script \
+                --idempotent \
+                --project src/IELS.FIR.Infrastructure \
+                --startup-project src/IELS.FIR.Api \
+                --context FirDbContext \
+                --configuration Release \
+                --no-build \
+                --output "$(Build.ArtifactStagingDirectory)/migrations/fir-migration.sql"
+
+            displayName: Generate EF Core Migration SQL
+
+          - publish: $(Build.ArtifactStagingDirectory)/migrations
+            artifact: fir-db-migrations
+            displayName: Publish Migration Artifact
   - stage: Container
     displayName: Build and Push Docker Image
     dependsOn: CI
@@ -89,9 +110,45 @@ stages:
                 echo "Successfully pushed:"
                 echo "$IMAGE:$BUILD_TAG"
                 echo "$IMAGE:dev"
+  - stage: DeployDatabase_Dev
+    displayName: Deploy Azure SQL Migrations
+    dependsOn: Container
+    condition: succeeded()
+
+    jobs:
+      - deployment: ApplyFirMigrations
+        displayName: Apply FIR Database Migrations
+        environment: IELS-Dev-Database
+
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: none
+
+                - download: current
+                  artifact: fir-db-migrations
+
+                - task: AzureCLI@2
+                  displayName: Execute SQL Migration
+                  inputs:
+                    azureSubscription: sc-iels-azure-dev
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+
+                      SQL_FILE="$(Pipeline.Workspace)/fir-db-migrations/fir-migration.sql"
+
+                      echo "SQL migration artifact: $SQL_FILE"
+
+                      test -f "$SQL_FILE"
+
+                      # SQL execution will be added after
+                      # configuring database authentication.             
   - stage: CD_Dev
     displayName: Deploy FIR API to Dev
-    dependsOn: Container
+    dependsOn: DeployDatabase_Dev
     condition: succeeded()
 
     jobs:

@@ -1,0 +1,422 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "IELS.FIR.Api | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/firs": {
+      "post": {
+        "tags": ["Firs"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterFirCommand"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterFirCommand"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterFirCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfRegisterFirResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfRegisterFirResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfRegisterFirResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/police-stations/{policeStationId}/firs/{firNumber}": {
+      "get": {
+        "tags": ["Firs"],
+        "parameters": [
+          {
+            "name": "policeStationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "firNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfFirResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfFirResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfFirResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiError": {
+        "required": ["code", "message"],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "field": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "ApiResponseOfFirResponse": {
+        "required": ["success", "data", "errors"],
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FirResponse"
+              }
+            ]
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          },
+          "traceId": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "ApiResponseOfObject": {
+        "required": ["success", "data", "errors"],
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {},
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          },
+          "traceId": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "ApiResponseOfRegisterFirResponse": {
+        "required": ["success", "data", "errors"],
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RegisterFirResponse"
+              }
+            ]
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          },
+          "traceId": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "FirLocationResponse": {
+        "required": [
+          "addressLine1",
+          "addressLine2",
+          "villageOrCity",
+          "district",
+          "state",
+          "pinCode",
+          "latitude",
+          "longitude"
+        ],
+        "type": "object",
+        "properties": {
+          "addressLine1": {
+            "type": "string"
+          },
+          "addressLine2": {
+            "type": ["null", "string"]
+          },
+          "villageOrCity": {
+            "type": "string"
+          },
+          "district": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "pinCode": {
+            "type": ["null", "string"]
+          },
+          "latitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": ["null", "number", "string"],
+            "format": "double"
+          },
+          "longitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": ["null", "number", "string"],
+            "format": "double"
+          }
+        }
+      },
+      "FirResponse": {
+        "required": [
+          "id",
+          "firNumber",
+          "policeStationId",
+          "districtId",
+          "incidentDate",
+          "description",
+          "complainantName",
+          "status",
+          "registeredAtUtc",
+          "incidentLocation"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "firNumber": {
+            "type": "string"
+          },
+          "policeStationId": {
+            "type": "string"
+          },
+          "districtId": {
+            "type": "string"
+          },
+          "incidentDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string"
+          },
+          "complainantName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "registeredAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "incidentLocation": {
+            "$ref": "#/components/schemas/FirLocationResponse"
+          }
+        }
+      },
+      "IncidentLocationDto": {
+        "required": [
+          "addressLine1",
+          "addressLine2",
+          "villageOrCity",
+          "district",
+          "state",
+          "pinCode",
+          "latitude",
+          "longitude"
+        ],
+        "type": "object",
+        "properties": {
+          "addressLine1": {
+            "type": "string"
+          },
+          "addressLine2": {
+            "type": ["null", "string"]
+          },
+          "villageOrCity": {
+            "type": "string"
+          },
+          "district": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "pinCode": {
+            "type": ["null", "string"]
+          },
+          "latitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": ["null", "number", "string"],
+            "format": "double"
+          },
+          "longitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": ["null", "number", "string"],
+            "format": "double"
+          }
+        }
+      },
+      "RegisterFirCommand": {
+        "required": [
+          "firNumber",
+          "policeStationId",
+          "districtId",
+          "incidentDate",
+          "description",
+          "complainantName",
+          "incidentLocation"
+        ],
+        "type": "object",
+        "properties": {
+          "firNumber": {
+            "type": "string"
+          },
+          "policeStationId": {
+            "type": "string"
+          },
+          "districtId": {
+            "type": "string"
+          },
+          "incidentDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string"
+          },
+          "complainantName": {
+            "type": "string"
+          },
+          "incidentLocation": {
+            "$ref": "#/components/schemas/IncidentLocationDto"
+          }
+        }
+      },
+      "RegisterFirResponse": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Firs"
+    }
+  ]
+}

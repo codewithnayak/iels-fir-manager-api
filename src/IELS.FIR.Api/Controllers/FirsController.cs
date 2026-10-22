@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using IELS.FIR.Api.Contracts;
 using IELS.FIR.Application.Features.RegisterFir;
 using IELS.FIR.Application.Features.GetFirByNumber;
 using Microsoft.AspNetCore.Mvc;
@@ -10,14 +12,17 @@ public sealed class FirsController(
     RegisterFirHandler registerHandler,
     GetFirByNumberHandler getHandler) : ControllerBase
 {
+    private string TraceId =>
+        Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+
     [HttpPost]
     [ProducesResponseType(
-        typeof(RegisterFirResponse),
+        typeof(ApiResponse<RegisterFirResponse>),
         StatusCodes.Status201Created)]
     [ProducesResponseType(
-        typeof(ValidationProblemDetails),
+        typeof(ApiResponse<object>),
         StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register(
+    public async Task<ActionResult<ApiResponse<RegisterFirResponse>>> Register(
         [FromBody] RegisterFirCommand command,
         CancellationToken cancellationToken)
     {
@@ -25,18 +30,23 @@ public sealed class FirsController(
             command,
             cancellationToken);
 
+        var response = ApiResponse<RegisterFirResponse>.Ok(
+            new RegisterFirResponse(id),
+            TraceId);
+
         return StatusCode(
             StatusCodes.Status201Created,
-            new RegisterFirResponse(id));
+            response);
     }
 
     [HttpGet("/api/police-stations/{policeStationId}/firs/{firNumber}")]
     [ProducesResponseType(
-        typeof(FirResponse),
+        typeof(ApiResponse<FirResponse>),
         StatusCodes.Status200OK)]
     [ProducesResponseType(
+        typeof(ApiResponse<object>),
         StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FirResponse>> GetByNumber(
+    public async Task<ActionResult<ApiResponse<FirResponse>>> GetByNumber(
         [FromRoute] string policeStationId,
         [FromRoute] string firNumber,
         CancellationToken cancellationToken)
@@ -46,10 +56,21 @@ public sealed class FirsController(
             firNumber,
             cancellationToken);
 
-        if (result is null)
-            return NotFound();
+        if (result is not null)
+            return Ok(ApiResponse<FirResponse>.Ok(
+                result,
+                TraceId));
+        
+        var error = ApiResponse<FirResponse>.Fail(
+            [
+                new ApiError(
+                    "FIR_NOT_FOUND",
+                    "The requested FIR could not be found.")
+            ],
+            TraceId);
 
-        return Ok(result);
+        return NotFound(error);
+
     }
 }
 

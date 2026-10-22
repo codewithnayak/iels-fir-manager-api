@@ -1,16 +1,42 @@
 
+using System.Diagnostics;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using IELS.FIR.Api.Contracts;
 using IELS.FIR.Api.ExceptionHandling;
 using IELS.FIR.Application;
-using IELS.FIR.Application.Features.GetFirByNumber;
 using IELS.FIR.Infrastructure;
 using IELS.FIR.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(entry => entry.Value?.Errors.Count > 0)
+                .SelectMany(entry => entry.Value!.Errors.Select(error =>
+                    new ApiError(
+                        "VALIDATION_ERROR",
+                        string.IsNullOrWhiteSpace(error.ErrorMessage)
+                            ? "Invalid value."
+                            : error.ErrorMessage,
+                        entry.Key)))
+                .ToArray();
+
+            var traceId =
+                Activity.Current?.Id ??
+                context.HttpContext.TraceIdentifier;
+
+            return new BadRequestObjectResult(
+                ApiResponse<object>.Fail(errors, traceId));
+        };
+    });
 builder.Services.AddOpenApi("v1");
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
