@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using IELS.FIR.Api.Contracts;
 using IELS.FIR.Application.Features.RegisterFir;
 using IELS.FIR.IntegrationTests.Fixtures;
 
@@ -26,10 +27,10 @@ public sealed class FirsEndpointTests
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var result = await response.Content
-            .ReadFromJsonAsync<RegisterFirResponse>();
+            .ReadFromJsonAsync<ApiResponse<RegisterFirResponse>>();
 
         Assert.NotNull(result);
-        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.NotEqual(Guid.Empty, result.Data?.Id);
     }
 
     [Theory]

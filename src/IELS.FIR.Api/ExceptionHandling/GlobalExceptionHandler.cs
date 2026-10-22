@@ -1,13 +1,12 @@
-
+using System.Diagnostics;
 using FluentValidation;
+using IELS.FIR.Api.Contracts;
 using IELS.FIR.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 
 namespace IELS.FIR.Api.ExceptionHandling;
 
 public sealed class GlobalExceptionHandler(
-    IProblemDetailsService problemDetailsService,
     ILogger<GlobalExceptionHandler> logger)
     : IExceptionHandler
 {
@@ -16,67 +15,64 @@ public sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var (statusCode, title) = exception switch
-        {
-            ValidationException =>
-                (StatusCodes.Status400BadRequest,
-                 "Validation failed"),
+        var traceId =
+            Activity.Current?.Id ?? httpContext.TraceIdentifier;
 
-            DomainException =>
-                (StatusCodes.Status400BadRequest,
-                 "Domain validation failed"),
+        var statusCode = exception switch
+        {
+            ValidationException or DomainException =>
+                StatusCodes.Status400BadRequest,
 
             _ =>
-                (StatusCodes.Status500InternalServerError,
-                 "An unexpected error occurred")
+                StatusCodes.Status500InternalServerError
         };
 
-        if (statusCode == 500)
+        var errors = exception switch
+        {
+            ValidationException validationException =>
+                validationException.Errors
+                    .Select(error => new ApiError(
+                        "VALIDATION_ERROR",
+                        error.ErrorMessage,
+                        error.PropertyName))
+                    .ToArray(),
+
+            DomainException domainException =>
+            [
+                new ApiError(
+                    "DOMAIN_VALIDATION_ERROR",
+                    domainException.Message)
+            ],
+
+            _ =>
+            [
+                new ApiError(
+                    "INTERNAL_SERVER_ERROR",
+                    "An unexpected error occurred.")
+            ]
+        };
+
+        if (statusCode == StatusCodes.Status500InternalServerError)
         {
             logger.LogError(
                 exception,
                 "Unhandled exception. TraceId: {TraceId}",
-                httpContext.TraceIdentifier);
+                traceId);
+        }
+        else
+        {
+            logger.LogWarning(
+                "Request rejected. StatusCode: {StatusCode}, TraceId: {TraceId}",
+                statusCode,
+                traceId);
         }
 
         httpContext.Response.StatusCode = statusCode;
 
-        var problem = new ProblemDetails
-        {
-            Status = statusCode,
-            Title = title,
-            Detail = statusCode == 500
-                ? "An unexpected error occurred."
-                : exception.Message,
-            Instance = httpContext.Request.Path
-        };
+        await httpContext.Response.WriteAsJsonAsync(
+            ApiResponse<object>.Fail(errors, traceId),
+            cancellationToken);
 
-        if (exception is ValidationException validationException)
-        {
-            var errors = validationException.Errors
-                .GroupBy(x => x.PropertyName)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group.Select(x => x.ErrorMessage)
-                        .ToArray());
-
-            problem = new ValidationProblemDetails(errors)
-            {
-                Status = statusCode,
-                Title = title,
-                Instance = httpContext.Request.Path
-            };
-        }
-
-        problem.Extensions["traceId"] =
-            httpContext.TraceIdentifier;
-
-        return await problemDetailsService.TryWriteAsync(
-            new ProblemDetailsContext
-            {
-                HttpContext = httpContext,
-                ProblemDetails = problem,
-                Exception = exception
-            });
+        return true;
     }
 }
